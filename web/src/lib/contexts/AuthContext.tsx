@@ -23,6 +23,7 @@ interface AuthContextType {
     signUpWithEmail: (email: string, password: string, displayName: string) => Promise<void>;
     signInWithGoogle: () => Promise<void>;
     logout: () => Promise<void>;
+    updateUserProfile: (displayName: string, photoURL?: string) => Promise<void>;
     clearError: () => void;
 }
 
@@ -163,6 +164,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
     };
 
+    // Update User Profile
+    const updateUserProfile = async (displayName: string, photoURL?: string) => {
+        try {
+            setError(null);
+            setLoading(true);
+
+            if (!auth.currentUser) throw new Error('No user logged in');
+
+            await updateProfile(auth.currentUser, {
+                displayName,
+                photoURL: photoURL || null
+            });
+
+            // Update Firestore
+            const userRef = doc(db, 'users', auth.currentUser.uid);
+            await setDoc(userRef, {
+                displayName,
+                photoURL: photoURL || null
+            }, { merge: true });
+
+            // Update local state
+            setUser(prev => prev ? { ...prev, displayName, photoURL: photoURL || undefined } : null);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to update profile';
+            setError(errorMessage);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // Clear error
     const clearError = () => setError(null);
 
@@ -175,6 +207,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         signUpWithEmail,
         signInWithGoogle,
         logout,
+        updateUserProfile,
         clearError,
     };
 

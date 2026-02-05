@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input, Textarea } from '@/components/ui/Input';
@@ -31,9 +32,13 @@ const mockTasks: Task[] = [
 type FilterStatus = 'all' | 'pending' | 'completed';
 
 export default function DashboardPage() {
+    const { user, updateUserProfile, logout } = useAuth();
     const [tasks, setTasks] = useState<Task[]>(mockTasks);
     const [filter, setFilter] = useState<FilterStatus>('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // Profile State
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     // New Task State
     const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -92,6 +97,10 @@ export default function DashboardPage() {
     // Delete task
     const deleteTask = (taskId: string) => {
         setTasks((prev) => prev.filter((task) => task.id !== taskId));
+    };
+
+    const openProfileModal = () => {
+        setIsProfileOpen(true);
     };
 
     // Add new task
@@ -165,7 +174,22 @@ export default function DashboardPage() {
                 </nav>
 
                 <div className="dashboard-user">
-                    <div className="dashboard-avatar">U</div>
+                    <button
+                        className="dashboard-avatar"
+                        onClick={openProfileModal}
+                        title="Edit Profile"
+                        style={{ overflow: 'hidden', border: 'none', padding: 0 }}
+                    >
+                        {user?.photoURL ? (
+                            <img
+                                src={user.photoURL}
+                                alt={user.displayName || 'User'}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                        ) : (
+                            <span>{user?.displayName ? user.displayName[0].toUpperCase() : 'U'}</span>
+                        )}
+                    </button>
                 </div>
             </header>
 
@@ -178,7 +202,7 @@ export default function DashboardPage() {
                         animate={{ opacity: 1, y: 0 }}
                         className="dashboard-greeting"
                     >
-                        Good evening! 👋
+                        Good evening, {user?.displayName?.split(' ')[0] || 'Friend'}! 👋
                     </motion.h1>
                     <p className="dashboard-date">{formattedDate}</p>
                 </div>
@@ -388,6 +412,63 @@ export default function DashboardPage() {
                                 ⚡ Urgent
                             </span>
                         </label>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Profile Modal */}
+            <Modal
+                isOpen={isProfileOpen}
+                onClose={() => setIsProfileOpen(false)}
+                title="My Profile"
+                size="md"
+                footer={
+                    <>
+                        <Button variant="ghost" onClick={() => logout()} style={{ color: 'var(--status-error)' }}>
+                            Sign Out
+                        </Button>
+                        <div style={{ flex: 1 }}></div>
+                        <Button onClick={() => setIsProfileOpen(false)}>
+                            Close
+                        </Button>
+                    </>
+                }
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)', alignItems: 'center', padding: 'var(--space-md) 0' }}>
+                    <div
+                        style={{
+                            width: '100px',
+                            height: '100px',
+                            borderRadius: '50%',
+                            overflow: 'hidden',
+                            backgroundColor: 'var(--bg-card-hover)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '2.5rem',
+                            color: 'var(--text-secondary)',
+                            marginBottom: 'var(--space-xs)',
+                            border: '4px solid var(--bg-card)'
+                        }}
+                    >
+                        {user?.photoURL ? (
+                            <img
+                                src={user.photoURL}
+                                alt="Profile"
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                        ) : (
+                            <span>{user?.displayName ? user.displayName[0].toUpperCase() : 'U'}</span>
+                        )}
+                    </div>
+
+                    <div style={{ textAlign: 'center' }}>
+                        <h3 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-xs)' }}>
+                            {user?.displayName || 'User'}
+                        </h3>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
+                            {user?.email}
+                        </p>
                     </div>
                 </div>
             </Modal>
