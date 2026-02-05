@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useId } from 'react';
 import { cn } from '@/lib/utils';
 import './Input.css';
 
@@ -30,7 +30,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         },
         ref
     ) => {
-        const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+        const uniqueId = useId();
+        const inputId = id || `input-${uniqueId}`;
 
         return (
             <div className="input-wrapper">
@@ -53,8 +54,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
                             'input',
                             `input--${inputSize}`,
                             error && 'input--error',
-                            leftIcon && 'input--with-left-icon',
-                            rightIcon && 'input--with-right-icon',
+                            !!leftIcon && 'input--with-left-icon',
+                            !!rightIcon && 'input--with-right-icon',
                             className
                         )}
                         aria-invalid={!!error}
@@ -102,7 +103,8 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         },
         ref
     ) => {
-        const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
+        const uniqueId = useId();
+        const textareaId = id || `textarea-${uniqueId}`;
 
         return (
             <div className="input-wrapper">

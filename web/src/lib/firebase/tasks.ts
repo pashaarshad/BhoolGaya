@@ -134,6 +134,7 @@ export const createTask = async (userId: string, input: CreateTaskInput): Promis
             taskDate,
             createdAt: now,
             originalDate: taskDate,
+            completedAt: undefined,
         } as Task;
     } catch (error) {
         console.error('Error creating task:', error);
