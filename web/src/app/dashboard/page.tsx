@@ -146,7 +146,7 @@ export default function DashboardPage() {
             <header className="dashboard-header">
                 <div className="dashboard-logo">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/logo.png" alt="BhoolGaya?" style={{ height: '40px', width: 'auto' }} />
+                    <img src="/logo.png" alt="BhoolGaya?" style={{ height: '60px', width: 'auto' }} />
                 </div>
 
                 <nav className="dashboard-nav">
@@ -250,10 +250,9 @@ export default function DashboardPage() {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, x: -100 }}
                                         transition={{
-                                            type: "spring",
-                                            stiffness: 500,
-                                            damping: 30,
-                                            mass: 1
+                                            type: "tween",
+                                            duration: 2,
+                                            ease: "easeInOut"
                                         }}
                                         className={`task-item ${getAgeClass(task)}`}
                                     >

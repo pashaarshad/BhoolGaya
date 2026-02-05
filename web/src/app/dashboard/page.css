@@ -6,7 +6,7 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background-color: var(--bg-primary);
+    /* background-color: var(--bg-primary); Removed to show global background */
 }
 
 /* Header */
