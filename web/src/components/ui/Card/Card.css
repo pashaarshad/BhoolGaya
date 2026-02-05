@@ -1,0 +1,122 @@
+/* ========================================
+   Card Component Styles
+   ======================================== */
+
+.card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all var(--transition-fast);
+}
+
+/* Variants */
+.card--elevated {
+    box-shadow: var(--shadow-md);
+}
+
+.card--elevated:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+.card--interactive {
+    cursor: pointer;
+}
+
+.card--interactive:hover {
+    border-color: var(--border-normal);
+    transform: translateY(-2px);
+}
+
+.card--interactive:active {
+    transform: translateY(0);
+}
+
+.card--outlined {
+    border: 1px solid var(--border-normal);
+}
+
+.card--ghost {
+    background-color: transparent;
+    border: none;
+}
+
+/* Border colors for task age */
+.card--age-today {
+    border-left: 3px solid var(--task-today);
+}
+
+.card--age-yesterday {
+    border-left: 3px solid var(--task-yesterday);
+}
+
+.card--age-2days {
+    border-left: 3px solid var(--task-2days);
+}
+
+.card--age-critical {
+    border-left: 3px solid var(--task-critical);
+}
+
+.card--completed {
+    border-left: 3px solid var(--task-completed);
+    opacity: 0.7;
+}
+
+/* Padding options */
+.card--padding-none {
+    padding: 0;
+}
+
+.card--padding-sm {
+    padding: var(--space-sm);
+}
+
+.card--padding-md {
+    padding: var(--space-md);
+}
+
+.card--padding-lg {
+    padding: var(--space-lg);
+}
+
+/* Card sections */
+.card-header {
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.card-title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.card-description {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin-top: var(--space-xs);
+}
+
+.card-body {
+    padding: var(--space-md);
+}
+
+.card-footer {
+    padding: var(--space-md);
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+}
+
+/* Glow effect for special cards */
+.card--glow {
+    box-shadow: var(--shadow-glow);
+}
+
+.card--glow:hover {
+    box-shadow: var(--shadow-glow-strong);
+}

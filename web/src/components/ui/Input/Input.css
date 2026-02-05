@@ -1,0 +1,124 @@
+/* ========================================
+   Input Component Styles
+   ======================================== */
+
+.input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    width: 100%;
+}
+
+.input-label {
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    color: var(--text-secondary);
+}
+
+.input-label--required::after {
+    content: ' *';
+    color: var(--task-critical);
+}
+
+.input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--text-base);
+    color: var(--text-primary);
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-normal);
+    border-radius: var(--radius-md);
+    outline: none;
+    transition: all var(--transition-fast);
+}
+
+.input::placeholder {
+    color: var(--text-muted);
+}
+
+.input:hover:not(:disabled) {
+    border-color: var(--text-muted);
+}
+
+.input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--bg-card);
+}
+
+/* Error state */
+.input--error {
+    border-color: var(--task-critical);
+}
+
+.input--error:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+/* Sizes */
+.input--sm {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--text-sm);
+}
+
+.input--lg {
+    padding: var(--space-md) var(--space-lg);
+    font-size: var(--text-lg);
+}
+
+/* With icons */
+.input--with-left-icon {
+    padding-left: calc(var(--space-md) + 24px);
+}
+
+.input--with-right-icon {
+    padding-right: calc(var(--space-md) + 24px);
+}
+
+.input-icon {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.input-icon--left {
+    left: var(--space-sm);
+}
+
+.input-icon--right {
+    right: var(--space-sm);
+}
+
+/* Helper text */
+.input-helper {
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+.input-error {
+    font-size: var(--text-xs);
+    color: var(--task-critical);
+}
+
+/* Textarea specific */
+.textarea {
+    min-height: 100px;
+    resize: vertical;
+    line-height: 1.5;
+}
