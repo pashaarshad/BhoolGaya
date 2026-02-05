@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input, Textarea } from '@/components/ui/Input';
@@ -16,14 +17,15 @@ interface Task {
     important: boolean;
     urgent: boolean;
     category?: string;
+    createdAt: number;
 }
 
 const mockTasks: Task[] = [
-    { id: '1', title: 'Complete DSA Practice - Arrays', status: 'pending', ageInDays: 0, important: true, urgent: true },
-    { id: '2', title: 'Read Chapter 5 - Operating Systems', status: 'pending', ageInDays: 1, important: true, urgent: false },
-    { id: '3', title: 'Submit Assignment - DBMS', status: 'pending', ageInDays: 2, important: true, urgent: true },
-    { id: '4', title: 'Review lecture notes', status: 'pending', ageInDays: 3, important: false, urgent: false },
-    { id: '5', title: 'Morning exercise', status: 'completed', ageInDays: 0, important: true, urgent: false },
+    { id: '1', title: 'Complete DSA Practice - Arrays', status: 'pending', ageInDays: 0, important: true, urgent: true, createdAt: Date.now() - 100000 },
+    { id: '2', title: 'Read Chapter 5 - Operating Systems', status: 'pending', ageInDays: 1, important: true, urgent: false, createdAt: Date.now() - 200000 },
+    { id: '3', title: 'Submit Assignment - DBMS', status: 'pending', ageInDays: 2, important: true, urgent: true, createdAt: Date.now() - 300000 },
+    { id: '4', title: 'Review lecture notes', status: 'pending', ageInDays: 3, important: false, urgent: false, createdAt: Date.now() - 400000 },
+    { id: '5', title: 'Morning exercise', status: 'completed', ageInDays: 0, important: true, urgent: false, createdAt: Date.now() - 500000 },
 ];
 
 type FilterStatus = 'all' | 'pending' | 'completed';
@@ -32,10 +34,16 @@ export default function DashboardPage() {
     const [tasks, setTasks] = useState<Task[]>(mockTasks);
     const [filter, setFilter] = useState<FilterStatus>('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // New Task State
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [newTaskDescription, setNewTaskDescription] = useState('');
     const [newTaskImportant, setNewTaskImportant] = useState(false);
     const [newTaskUrgent, setNewTaskUrgent] = useState(false);
+
+    // Hydration fix
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
 
     // Get current date formatted
     const today = new Date();
@@ -47,13 +55,7 @@ export default function DashboardPage() {
     };
     const formattedDate = today.toLocaleDateString('en-US', dateOptions);
 
-    // Filter tasks
-    const filteredTasks = tasks.filter((task) => {
-        if (filter === 'all') return true;
-        return task.status === filter;
-    });
-
-    // Calculate stats
+    // Stats calculation
     const pendingCount = tasks.filter((t) => t.status === 'pending').length;
     const completedCount = tasks.filter((t) => t.status === 'completed').length;
     const criticalCount = tasks.filter((t) => t.status === 'pending' && t.ageInDays >= 3).length;
@@ -76,7 +78,7 @@ export default function DashboardPage() {
         return { text: '🔴 Critical', class: 'task-badge--age-critical' };
     };
 
-    // Toggle task completion
+    // Toggle task completion with animation logic
     const toggleTask = (taskId: string) => {
         setTasks((prev) =>
             prev.map((task) =>
@@ -103,6 +105,7 @@ export default function DashboardPage() {
             ageInDays: 0,
             important: newTaskImportant,
             urgent: newTaskUrgent,
+            createdAt: Date.now(),
         };
 
         setTasks((prev) => [newTask, ...prev]);
@@ -113,12 +116,37 @@ export default function DashboardPage() {
         setIsModalOpen(false);
     };
 
+    // Filter and Sort Logic
+    const getFilteredAndSortedTasks = () => {
+        let filtered = tasks;
+        if (filter !== 'all') {
+            filtered = tasks.filter(t => t.status === filter);
+        }
+
+        // Sort: Pending first, then completed. Within pending: Oldest age first, then Newest created.
+        return filtered.sort((a, b) => {
+            // 1. Status (Pending > Completed)
+            if (a.status !== b.status) return a.status === 'pending' ? -1 : 1;
+
+            // 2. Priority (Pending only) - Tasks with older age come first (Urgent!)
+            if (a.status === 'pending' && a.ageInDays !== b.ageInDays) return b.ageInDays - a.ageInDays;
+
+            // 3. Creation Date (Newest first)
+            return b.createdAt - a.createdAt;
+        });
+    };
+
+    const visibleTasks = getFilteredAndSortedTasks();
+
+    if (!mounted) return null;
+
     return (
         <div className="dashboard">
             {/* Header */}
             <header className="dashboard-header">
                 <div className="dashboard-logo">
-                    🎯 <span>BhoolGaya?</span>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/logo.png" alt="BhoolGaya?" style={{ height: '40px', width: 'auto' }} />
                 </div>
 
                 <nav className="dashboard-nav">
@@ -145,7 +173,13 @@ export default function DashboardPage() {
             <main className="dashboard-main">
                 {/* Welcome */}
                 <div className="dashboard-welcome">
-                    <h1 className="dashboard-greeting">Good evening! 👋</h1>
+                    <motion.h1
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="dashboard-greeting"
+                    >
+                        Good evening! 👋
+                    </motion.h1>
                     <p className="dashboard-date">{formattedDate}</p>
                 </div>
 
@@ -171,107 +205,131 @@ export default function DashboardPage() {
 
                 {/* Filters */}
                 <div className="dashboard-filters">
-                    <button
-                        className={`filter-tab ${filter === 'all' ? 'filter-tab--active' : ''}`}
-                        onClick={() => setFilter('all')}
-                    >
-                        All
-                    </button>
-                    <button
-                        className={`filter-tab ${filter === 'pending' ? 'filter-tab--active' : ''}`}
-                        onClick={() => setFilter('pending')}
-                    >
-                        Pending
-                    </button>
-                    <button
-                        className={`filter-tab ${filter === 'completed' ? 'filter-tab--active' : ''}`}
-                        onClick={() => setFilter('completed')}
-                    >
-                        Completed
-                    </button>
+                    {(['all', 'pending', 'completed'] as FilterStatus[]).map((f) => (
+                        <button
+                            key={f}
+                            className={`filter-tab ${filter === f ? 'filter-tab--active' : ''}`}
+                            onClick={() => setFilter(f)}
+                        >
+                            {f.charAt(0).toUpperCase() + f.slice(1)}
+                        </button>
+                    ))}
                 </div>
 
                 {/* Task List */}
                 <div className="task-list">
-                    {filteredTasks.length === 0 ? (
-                        <div className="task-list-empty">
-                            <div className="task-list-empty__icon">🎉</div>
-                            <h3 className="task-list-empty__title">
-                                {filter === 'completed' ? 'No completed tasks yet' : 'All caught up!'}
-                            </h3>
-                            <p className="task-list-empty__description">
-                                {filter === 'completed'
-                                    ? 'Complete some tasks to see them here.'
-                                    : "BhoolGaya? Nope! You're free now."}
-                            </p>
-                            {filter !== 'completed' && (
-                                <Button onClick={() => setIsModalOpen(true)}>Add a Task</Button>
-                            )}
-                        </div>
-                    ) : (
-                        filteredTasks.map((task) => {
-                            const ageBadge = getAgeBadge(task);
-                            return (
-                                <div key={task.id} className={`task-item ${getAgeClass(task)}`}>
-                                    <button
-                                        className={`task-checkbox ${task.status === 'completed' ? 'task-checkbox--checked' : ''}`}
-                                        onClick={() => toggleTask(task.id)}
-                                        aria-label={task.status === 'completed' ? 'Mark as pending' : 'Mark as complete'}
+                    <AnimatePresence mode="popLayout" initial={false}>
+                        {visibleTasks.length === 0 ? (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                className="task-list-empty"
+                            >
+                                <div className="task-list-empty__icon">🎉</div>
+                                <h3 className="task-list-empty__title">
+                                    {filter === 'completed' ? 'No completed tasks yet' : 'All caught up!'}
+                                </h3>
+                                <p className="task-list-empty__description">
+                                    {filter === 'completed'
+                                        ? 'Complete some tasks to see them here.'
+                                        : "BhoolGaya? Nope! You're free now."}
+                                </p>
+                                {filter !== 'completed' && (
+                                    <Button onClick={() => setIsModalOpen(true)}>Add a Task</Button>
+                                )}
+                            </motion.div>
+                        ) : (
+                            visibleTasks.map((task) => {
+                                const ageBadge = getAgeBadge(task);
+                                return (
+                                    <motion.div
+                                        layout
+                                        key={task.id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, x: -100 }}
+                                        transition={{
+                                            type: "spring",
+                                            stiffness: 500,
+                                            damping: 30,
+                                            mass: 1
+                                        }}
+                                        className={`task-item ${getAgeClass(task)}`}
                                     >
-                                        {task.status === 'completed' && (
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                                <path d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        )}
-                                    </button>
-
-                                    <div className="task-content">
-                                        <div className="task-title">{task.title}</div>
-                                        <div className="task-meta">
-                                            {ageBadge && (
-                                                <span className={`task-badge task-badge--age ${ageBadge.class}`}>
-                                                    {ageBadge.text}
-                                                </span>
-                                            )}
-                                            {task.important && (
-                                                <span className="task-badge task-badge--important">⭐ Important</span>
-                                            )}
-                                            {task.urgent && (
-                                                <span className="task-badge task-badge--urgent">⚡ Urgent</span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="task-actions">
-                                        <button className="task-action-btn" aria-label="Edit task">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                            </svg>
-                                        </button>
                                         <button
-                                            className="task-action-btn task-action-btn--delete"
-                                            onClick={() => deleteTask(task.id)}
-                                            aria-label="Delete task"
+                                            className={`task-checkbox ${task.status === 'completed' ? 'task-checkbox--checked' : ''}`}
+                                            onClick={() => toggleTask(task.id)}
+                                            aria-label={task.status === 'completed' ? 'Mark as pending' : 'Mark as complete'}
                                         >
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                            </svg>
+                                            {task.status === 'completed' && (
+                                                <motion.svg
+                                                    initial={{ scale: 0 }}
+                                                    animate={{ scale: 1 }}
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="3"
+                                                >
+                                                    <path d="M5 13l4 4L19 7" />
+                                                </motion.svg>
+                                            )}
                                         </button>
-                                    </div>
-                                </div>
-                            );
-                        })
-                    )}
+
+                                        <div className="task-content">
+                                            <div className="task-title">{task.title}</div>
+                                            <div className="task-meta">
+                                                {ageBadge && (
+                                                    <span className={`task-badge task-badge--age ${ageBadge.class}`}>
+                                                        {ageBadge.text}
+                                                    </span>
+                                                )}
+                                                {task.important && (
+                                                    <span className="task-badge task-badge--important">⭐ Important</span>
+                                                )}
+                                                {task.urgent && (
+                                                    <span className="task-badge task-badge--urgent">⚡ Urgent</span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="task-actions">
+                                            <button className="task-action-btn" aria-label="Edit task">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                className="task-action-btn task-action-btn--delete"
+                                                onClick={() => deleteTask(task.id)}
+                                                aria-label="Delete task"
+                                            >
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })
+                        )}
+                    </AnimatePresence>
                 </div>
             </main>
 
             {/* FAB */}
-            <button className="fab" onClick={() => setIsModalOpen(true)} aria-label="Add new task">
+            <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="fab"
+                onClick={() => setIsModalOpen(true)}
+                aria-label="Add new task"
+            >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M12 5v14M5 12h14" />
                 </svg>
-            </button>
+            </motion.button>
 
             {/* Add Task Modal */}
             <Modal
@@ -297,6 +355,7 @@ export default function DashboardPage() {
                         value={newTaskTitle}
                         onChange={(e) => setNewTaskTitle(e.target.value)}
                         isRequired
+                        autoFocus
                     />
 
                     <Textarea

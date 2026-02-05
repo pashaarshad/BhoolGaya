@@ -7,7 +7,10 @@ export default function Home() {
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-content">
-          <h1 className="hero-logo">🎯 BhoolGaya?</h1>
+          <div className="hero-logo-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-md)' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="BhoolGaya? Logo" style={{ height: '120px', width: 'auto' }} />
+          </div>
           <p className="hero-tagline">If a task exists anywhere, it exists here.</p>
           <p className="hero-description">
             A personal task management system that never forgets for you.

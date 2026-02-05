@@ -19,6 +19,9 @@
     text-align: center;
     position: relative;
     overflow: hidden;
+    background-image: linear-gradient(to bottom, rgba(10, 10, 15, 0.8), var(--bg-primary)), url('/background.png');
+    background-size: cover;
+    background-position: center;
 }
 
 .hero::before {
